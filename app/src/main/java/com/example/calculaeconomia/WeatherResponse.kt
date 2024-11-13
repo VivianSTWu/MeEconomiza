@@ -1,10 +1,12 @@
-package com.example.calculaeconomia
-
 data class WeatherResponse(
-    val current: CurrentWeather
+    val main: Main,
+    val wind: Wind
 )
 
-data class CurrentWeather(
-    val uvi: Double,         // índice UV, útil para estimar a incidência solar
-    val wind_speed: Double   // velocidade do vento em metros por segundo
+data class Main(
+    val temp: Double
+)
+
+data class Wind(
+    val speed: Double
 )
