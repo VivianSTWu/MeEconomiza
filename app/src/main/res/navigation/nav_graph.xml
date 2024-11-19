@@ -5,13 +5,23 @@
     app:startDestination="@id/cadastroFragment">
 
     <fragment
-        android:id="@+id/locationFragment"
+        android:id="@+id/resultadosFragment"
         android:name="com.example.calculaeconomia.ResultadosFragment"
-        android:label="LocationFragment" />
+        android:label="ResultadosFragment" />
+        <argument
+            android:name="latitude"
+            app:argType="float" />
+        <argument
+            android:name="longitude"
+            app:argType="float" />
     <fragment
         android:id="@+id/formularioFragment"
         android:name="com.example.calculaeconomia.FormularioFragment"
-        android:label="FormularioFragment" />
+        android:label="FormularioFragment" >
+        <action
+            android:id="@+id/action_formularioFragment_to_resultadosFragment"
+            app:destination="@id/resultadosFragment" />
+    </fragment>
     <fragment
         android:id="@+id/cadastroFragment"
         android:name="com.example.calculaeconomia.CadastroFragment"
