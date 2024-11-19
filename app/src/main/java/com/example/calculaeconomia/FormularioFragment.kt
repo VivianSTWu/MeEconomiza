@@ -16,6 +16,9 @@ class FormularioFragment : Fragment(){
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentFormularioBinding.inflate(inflater, container, false)
+
+        //(activity as? MainActivity)?.binding?.bottomNavigation?.visibility = View.VISIBLE
+
         return binding.root
     }
 

@@ -90,8 +90,9 @@ class CadastroFragment : Fragment(){
         })
     }*/
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (activity as? MainActivity)?.binding?.bottomNavigation?.visibility = View.VISIBLE
         _binding = null
     }
 }
