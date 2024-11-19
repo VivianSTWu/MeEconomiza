@@ -4,22 +4,25 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.calculaeconomia.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var binding: ActivityMainBinding
+        private set
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        // Configura o BottomNavigationView com o NavController
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        // Inicializa o View Binding
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Configura o NavController associado ao NavHostFragment
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
         // Configura o BottomNavigationView para usar o NavController
-        bottomNavigationView.setupWithNavController(navController)
+        binding.bottomNavigation.setupWithNavController(navController)
     }
 }

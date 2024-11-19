@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/logo_splash_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CalculaEconomia"
+        android:theme="@style/Theme.CalculaEconomia.NoActionBar"
         tools:targetApi="31">
         <activity
             android:name=".SplashActivity"

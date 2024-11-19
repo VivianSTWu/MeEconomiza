@@ -2,18 +2,22 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/locationFragment">
+    app:startDestination="@id/cadastroFragment">
 
     <fragment
         android:id="@+id/locationFragment"
         android:name="com.example.calculaeconomia.ResultadosFragment"
-        android:label="LocationFragment" >
-        <action
-            android:id="@+id/action_locationFragment_to_formularioFragment"
-            app:destination="@id/formularioFragment" />
-    </fragment>
+        android:label="LocationFragment" />
     <fragment
         android:id="@+id/formularioFragment"
         android:name="com.example.calculaeconomia.FormularioFragment"
         android:label="FormularioFragment" />
+    <fragment
+        android:id="@+id/cadastroFragment"
+        android:name="com.example.calculaeconomia.CadastroFragment"
+        android:label="CadastroFragment" >
+        <action
+            android:id="@+id/action_cadastroFragment_to_formularioFragment"
+            app:destination="@id/formularioFragment" />
+    </fragment>
 </navigation>
