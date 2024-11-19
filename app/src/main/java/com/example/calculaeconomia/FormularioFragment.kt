@@ -1,6 +1,7 @@
 package com.example.calculaeconomia
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,13 +9,42 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.calculaeconomia.databinding.FragmentFormularioBinding
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-class FormularioFragment : Fragment(){
+class FormularioFragment : Fragment() {
     private var _binding: FragmentFormularioBinding? = null
     private val binding get() = _binding!!
+
+    // Retrofit API e OkHttpClient com interceptor
+    private val retrofit by lazy {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+
+        Retrofit.Builder()
+            .baseUrl("https://api.distancematrix.ai/")  // Substitua pela URL real da API
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Inicializa Retrofit se necessário
+        // O Retrofit está sendo criado na propriedade `retrofit` no trecho acima
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,7 +58,7 @@ class FormularioFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn" // Substitua pela sua chave da API Distance Matrix
+        val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn" // Substitua pela sua chave da API
 
         // Configura o clique do botão
         binding.buttonSend.setOnClickListener {
@@ -53,7 +83,7 @@ class FormularioFragment : Fragment(){
             ) {
                 if (response.isSuccessful) {
                     response.body()?.let { geocodeResponse ->
-                        if (geocodeResponse.status == "OK") {
+                        if (geocodeResponse.status == "OK" && geocodeResponse.results != null && geocodeResponse.results.isNotEmpty()) {
                             val location = geocodeResponse.results.firstOrNull()?.geometry?.location
                             location?.let {
                                 // Exibe as coordenadas ou navega para outra página
@@ -64,8 +94,8 @@ class FormularioFragment : Fragment(){
                                 ).show()
 
                                 val bundle = Bundle().apply {
-                                    putDouble("latitude", it.lat) // Use Double diretamente
-                                    putDouble("longitude", it.lng)
+                                    putFloat("latitude", it.lat.toFloat())
+                                    putFloat("longitude", it.lng.toFloat())
                                 }
 
                                 // Navegar para o próximo fragmento usando o Bundle
@@ -73,19 +103,21 @@ class FormularioFragment : Fragment(){
                             } ?: run {
                                 Toast.makeText(
                                     requireContext(),
-                                    "Coordenadas não encontradas",
+                                    "Nenhum resultado encontrado para o CEP.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
                         } else {
+                            Log.e("FormularioFragment", "Erro na resposta da API ou resultados vazios: ${geocodeResponse.status}")
                             Toast.makeText(
                                 requireContext(),
-                                "Erro na API: ${geocodeResponse.status}",
+                                "Erro na API: ${geocodeResponse.status} ou sem resultados",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
                     }
                 } else {
+                    Log.e("FormularioFragment", "Erro na resposta da API: ${response.code()}")
                     Toast.makeText(
                         requireContext(),
                         "Erro na resposta: ${response.code()}",
@@ -95,6 +127,7 @@ class FormularioFragment : Fragment(){
             }
 
             override fun onFailure(call: Call<GeocodeResponse>, t: Throwable) {
+                Log.e("FormularioFragment", "Falha na requisição: ${t.message}")
                 Toast.makeText(
                     requireContext(),
                     "Falha na requisição: ${t.message}",
@@ -103,8 +136,6 @@ class FormularioFragment : Fragment(){
             }
         })
     }
-
-
 
     override fun onDestroy() {
         super.onDestroy()
