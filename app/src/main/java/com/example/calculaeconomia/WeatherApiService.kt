@@ -8,6 +8,13 @@ interface WeatherApiService {
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double,
         @Query("appid") apiKey: String,
-        @Query("units") unit: String
+        @Query("units") units: String = "metric"
     ): Call<WeatherResponse>
+
+    @GET("data/2.5/uvi")
+    fun getUvIndex(
+        @Query("lat") latitude: Double,
+        @Query("lon") longitude: Double,
+        @Query("appid") apiKey: String
+    ): Call<Current>
 }

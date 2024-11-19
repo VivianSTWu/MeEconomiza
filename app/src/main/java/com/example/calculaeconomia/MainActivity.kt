@@ -2,7 +2,9 @@ package com.example.calculaeconomia
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.commit
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -10,11 +12,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (savedInstanceState == null) {
-            // Carregar o fragmento
-            supportFragmentManager.commit {
-                replace(R.id.fragment_container, LocationFragment())
-            }
-        }
+        // Configura o BottomNavigationView com o NavController
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+        // Configura o NavController associado ao NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        // Configura o BottomNavigationView para usar o NavController
+        bottomNavigationView.setupWithNavController(navController)
     }
 }
