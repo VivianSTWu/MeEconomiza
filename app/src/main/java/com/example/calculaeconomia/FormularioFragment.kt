@@ -28,7 +28,7 @@ class FormularioFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val apiKey = "SUA_API_KEY" // Substitua pela sua chave da API Distance Matrix
+        val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn" // Substitua pela sua chave da API Distance Matrix
 
         // Configura o clique do botão
         binding.buttonSend.setOnClickListener {
@@ -64,12 +64,18 @@ class FormularioFragment : Fragment(){
                                 ).show()
 
                                 val bundle = Bundle().apply {
-                                    putFloat("latitude", it.lat.toFloat()) // Substitua `it.lat` pela sua variável real
-                                    putFloat("longitude", it.lng.toFloat()) // Substitua `it.lng` pela sua variável real
+                                    putDouble("latitude", it.lat) // Use Double diretamente
+                                    putDouble("longitude", it.lng)
                                 }
 
-// Navegar para o próximo fragmento usando o Bundle
+                                // Navegar para o próximo fragmento usando o Bundle
                                 findNavController().navigate(R.id.resultadosFragment, bundle)
+                            } ?: run {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Coordenadas não encontradas",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         } else {
                             Toast.makeText(
@@ -97,6 +103,7 @@ class FormularioFragment : Fragment(){
             }
         })
     }
+
 
 
     override fun onDestroy() {
