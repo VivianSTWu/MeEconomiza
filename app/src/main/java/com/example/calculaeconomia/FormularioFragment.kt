@@ -58,7 +58,7 @@ class FormularioFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn" // Substitua pela sua chave da API
+        val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn"
 
         // Configura o clique do botão
         binding.buttonSend.setOnClickListener {
@@ -168,7 +168,7 @@ class FormularioFragment : Fragment() {
                                 }
 
                                 // Navegar para o próximo fragmento usando o Bundle
-                                findNavController().navigate(R.id.resultadosFragment, bundle)
+                                findNavController().navigate(R.id.action_formularioFragment_to_resultadosFragment, bundle)
                             } ?: run {
                                 Toast.makeText(
                                     requireContext(),

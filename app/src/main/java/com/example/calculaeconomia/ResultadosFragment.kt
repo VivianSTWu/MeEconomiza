@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 import com.example.calculaeconomia.databinding.FragmentResultadosBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -22,6 +24,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.pow
 
 class ResultadosFragment : Fragment() {
@@ -32,8 +37,9 @@ class ResultadosFragment : Fragment() {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
-        private const val API_KEY = "4b4188bbb0e10c9709e02e6cc92b3c4c"
-        private const val BASE_URL = "https://api.openweathermap.org/"
+        private const val API_KEY = "62123cdbe631436eb8f03c79958921b9" //Weatherbit
+        /*private const val API_KEY = "4b4188bbb0e10c9709e02e6cc92b3c4c"
+        private const val BASE_URL = "https://api.openweathermap.org/"*/
     }
 
     override fun onCreateView(
@@ -58,7 +64,67 @@ class ResultadosFragment : Fragment() {
         fetchUvIndex(latitude, longitude)
     }
 
-    private fun fetchWeatherData(latitude: Double, longitude: Double) {
+
+    private fun fetchWeatherData(lat: Double, lon: Double) {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val calendar = Calendar.getInstance()
+        val endDate = dateFormat.format(calendar.time)
+        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        val startDate = dateFormat.format(calendar.time)
+
+        RetrofitWeatherbit.api.getHistoricalWeather(lat, lon, startDate, endDate, API_KEY)
+            .enqueue(object : Callback<WeatherbitResponse> {
+                override fun onResponse(
+                    call: Call<WeatherbitResponse>,
+                    response: Response<WeatherbitResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { weatherResponse ->
+                            if (weatherResponse.data.isNotEmpty()) {
+                                val uvAverage = weatherResponse.data.map { it.uv }.average()
+                                val windAverage = weatherResponse.data.map { it.wind_spd }.average()
+
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Média UV: $uvAverage, Média Vento: $windAverage m/s",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                val bundle = Bundle().apply {
+                                    putDouble("uvAverage", uvAverage)
+                                    putDouble("windAverage", windAverage)
+                                }
+                                findNavController().navigate(R.id.resultadosFragment, bundle)
+                            } else {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Nenhum dado encontrado para o período.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    } else {
+                        Log.e("FormularioFragment", "Erro na resposta: ${response.errorBody()}")
+                        Toast.makeText(
+                            requireContext(),
+                            "Erro ao obter dados meteorológicos.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<WeatherbitResponse>, t: Throwable) {
+                    Log.e("FormularioFragment", "Erro na chamada da API", t)
+                    Toast.makeText(
+                        requireContext(),
+                        "Erro de conexão com a API.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
+    }
+
+    /*private fun fetchWeatherData(latitude: Double, longitude: Double) {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
@@ -91,7 +157,7 @@ class ResultadosFragment : Fragment() {
                 Log.e("ResultadosFragment", "Erro na chamada da API: ${t.message}")
             }
         })
-    }
+    }*/
 
     private fun fetchUvIndex(latitude: Double, longitude: Double) {
         val datetime = "now"

@@ -3,7 +3,7 @@
     <item
         android:id="@+id/resultadosFragment"
         android:icon="@android:drawable/ic_popup_sync"
-        android:title="Location" />
+        android:title="Resultados" />
     <item
         android:id="@+id/formularioFragment"
         android:icon="@android:drawable/ic_menu_manage"
