@@ -13,23 +13,26 @@ data class Usuario(
 )
 
 data class Endereco(
+    val id: Int,
     val tipoResidencial: String,
     val nome: String,
     val cep: String,
-    val tarifa: Float,
-    val gastoMensal: Float,
-    val economia: Float
+    val tarifa: Double,
+    val gastoMensal: Double,
+    val economia: Double
 )
 
 data class EnergiaEolica(
-    val potenciaNominal: Float,
-    val alturaTorre: Float,
-    val diametroRotor: Float,
-    val energiaEstimadaGerada: Float
+    val id: Int,
+    val potenciaNominal: Double,
+    val alturaTorre: Double,
+    val diametroRotor: Double,
+    val energiaEstimadaGerada: Double
 )
 
 data class EnergiaSolar(
-    val areaPlaca: Float,
-    val irradiacaoSolar: Float,
-    val energiaEstimadaGerada: Float
+    val id: Int,
+    val areaPlaca: Double,
+    val irradiacaoSolar: Double,
+    val energiaEstimadaGerada: Double
 )
