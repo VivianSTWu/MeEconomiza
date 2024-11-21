@@ -1,18 +1,18 @@
-package com.example.calculaeconomia
+package com.example.calculaeconomia.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object RetrofitWeatherbit {
-    private const val BASE_URL = "https://api.weatherbit.io/"
+object WeatherbitRetrofit {
+    private const val BASE_URL = "https://api.weatherbit.io/v2.0/"
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+    val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val client = OkHttpClient.Builder()
+    val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .build()
 

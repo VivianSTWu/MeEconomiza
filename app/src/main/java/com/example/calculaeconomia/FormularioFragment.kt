@@ -61,7 +61,7 @@ class FormularioFragment : Fragment() {
         val apiKey = "zMHrHyXl26wuNKPuCEeHDFJ2vKG2N6KpgY32IXNj97ERU7wjLH8mUhi6K6toCwBn"
 
         // Configura o clique do botão
-        binding.buttonSend.setOnClickListener {
+        binding.btnCalcular.setOnClickListener {
             val cep = binding.TextInputEditCep.text.toString().trim()
 
             // Valida se o CEP foi inserido
