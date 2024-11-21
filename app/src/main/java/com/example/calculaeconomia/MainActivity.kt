@@ -23,6 +23,25 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         // Configura o BottomNavigationView para usar o NavController
-        binding.bottomNavigation.setupWithNavController(navController)
+        binding.bottomNavigation.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.formularioFragment -> {
+                    val currentDestination = binding.navHostFragment.getFragment<NavHostFragment>().navController.currentDestination?.id
+                    if (currentDestination != R.id.formularioFragment) {
+                        binding.navHostFragment.getFragment<NavHostFragment>().navController.navigate(R.id.formularioFragment)
+                    }
+                    true
+                }
+                R.id.resultadosFragment -> {
+                    val currentDestination = binding.navHostFragment.getFragment<NavHostFragment>().navController.currentDestination?.id
+                    if (currentDestination != R.id.resultadosFragment) {
+                        binding.navHostFragment.getFragment<NavHostFragment>().navController.navigate(R.id.resultadosFragment)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+
     }
 }

@@ -49,6 +49,7 @@ class ResultadosFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentResultadosBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 

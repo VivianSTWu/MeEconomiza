@@ -2,12 +2,16 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/cadastroFragment">
+    app:startDestination="@id/formularioFragment">
 
     <fragment
         android:id="@+id/resultadosFragment"
         android:name="com.example.calculaeconomia.ResultadosFragment"
-        android:label="ResultadosFragment" />
+        android:label="ResultadosFragment" >
+        <action
+            android:id="@+id/action_resultadosFragment_to_formularioFragment"
+            app:destination="@id/formularioFragment" />
+    </fragment>
         <argument
             android:name="latitude"
             app:argType="float" />

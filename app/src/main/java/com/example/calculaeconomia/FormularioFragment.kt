@@ -168,7 +168,7 @@ class FormularioFragment : Fragment() {
                                 }
 
                                 // Navegar para o próximo fragmento usando o Bundle
-                                findNavController().navigate(R.id.action_formularioFragment_to_resultadosFragment, bundle)
+                                findNavController().navigate(R.id.resultadosFragment, bundle)
                             } ?: run {
                                 Toast.makeText(
                                     requireContext(),
