@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.calculaeconomia.databinding.FragmentResultadosBinding
 import com.example.calculaeconomia.network.WeatherbitRetrofit
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -157,69 +158,6 @@ class ResultadosFragment : Fragment() {
         }
     }
 
-
-
-    /*private fun fetchWeatherData(latitude: Double, longitude: Double) {
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val api = retrofit.create(WeatherApiService::class.java)
-        val call = api.getWeatherData(latitude, longitude, API_KEY)
-
-        call.enqueue(object : Callback<WeatherResponse> {
-            override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { weatherResponse ->
-                        val temperature = weatherResponse.main.temp
-                        val windSpeed = weatherResponse.wind.speed
-                        val uvIndex = weatherResponse.current?.uvi ?: 0.0
-
-                        Log.d(
-                            "ResultadosFragment",
-                            "Temperatura: $temperature°C, Velocidade do vento: $windSpeed m/s, Índice UV: $uvIndex"
-                        )
-
-                        updateUI(temperature, windSpeed, uvIndex)
-                    }
-                } else {
-                    Log.e("ResultadosFragment", "Erro na resposta: ${response.errorBody()?.string()}")
-                }
-            }
-
-            override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                Log.e("ResultadosFragment", "Erro na chamada da API: ${t.message}")
-            }
-        })
-    }*/
-
-
-   /* VERSÃO ANTERIOR, UTILIZANDO DADOS ATUAIS
-
-   private fun estimateSolarEnergy(uvIndex: Double?) {
-        if (uvIndex != null) {
-            val irradiance = uvIndex * 10
-
-            val areaOfPanels = 10.0
-            val panelEfficiency = 0.18
-
-            val solarEnergyGenerated = areaOfPanels * panelEfficiency * irradiance * 5
-
-            binding.txtSolarEnergy.text = "Energia Solar Estimada:\n$solarEnergyGenerated kWh/dia"
-        } else{
-            Log.e("ResultadosFragment", "Índice UV nulo, cálculo não realizado.")
-        }
-    }
-
-    private fun estimateWindEnergy(windSpeed: Double) {
-        val turbineArea = 10.0
-        val airDensity = 1.225
-
-        val windEnergyGenerated = 0.5 * airDensity * turbineArea * windSpeed.pow(3) * 0.35
-
-        binding.txtWindEnergy.text = "Energia Eólica Estimada:\n$windEnergyGenerated kWh/dia"
-    }*/
 
 
     override fun onDestroyView() {
