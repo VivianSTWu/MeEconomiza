@@ -68,13 +68,13 @@ class ResultadosFragment : Fragment() {
             Log.e("ResultadosFragment", "Coordenadas não fornecidas.")
         }
 
-        lifecycleScope.launch {
+        /*lifecycleScope.launch {
             val cardInfoList = fetchData(ApiClient.apiService)
             binding.recyclerView.apply {
                 layoutManager = LinearLayoutManager(context)
                 adapter = CardAdapter(cardInfoList)
             }
-        }
+        }*/
     }
 
 
@@ -118,7 +118,7 @@ class ResultadosFragment : Fragment() {
         }
     }
 
-    private suspend fun fetchData(apiService: ApiService): List<CardInfo> {
+    /*private suspend fun fetchData(apiService: ApiService): List<CardInfo> {
         return try {
             val enderecos = apiService.getEnderecos()
             val energiaSolar = apiService.getEnergiaSolar()
@@ -139,7 +139,7 @@ class ResultadosFragment : Fragment() {
             Log.e("ErroAPI", "Falha ao carregar dados: ${e.message}")
             emptyList()
         }
-    }
+    }*/
 
 
     private fun estimateSolarEnergy(avgUVIndex: Double?) {
