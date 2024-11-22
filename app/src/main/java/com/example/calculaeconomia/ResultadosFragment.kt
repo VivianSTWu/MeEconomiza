@@ -3,20 +3,14 @@ package com.example.calculaeconomia
 import UvResponse
 import WeatherApiService
 import WeatherResponse
-import android.Manifest
-import android.content.pm.PackageManager
-import android.location.Location
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.calculaeconomia.databinding.FragmentResultadosBinding
 import com.example.calculaeconomia.network.WeatherbitRetrofit
@@ -26,8 +20,6 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -37,29 +29,46 @@ class ResultadosFragment : Fragment() {
 
     private var _binding: FragmentResultadosBinding? = null
     private val binding get() = _binding!!
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private var energiaSolarGerada: Double? = null
+    private var energiaEolicaGerada: Double? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentResultadosBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val sharedPreferences = requireActivity().getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
+        val enderecoId = sharedPreferences.getInt("endereco_id", -1)
+        val usuarioId = sharedPreferences.getInt("user_id", -1)
+
+        // Logando o ID do endereço e do usuário
+        Log.d("ResultadosFragment", "ID do Endereço: $enderecoId")
+        Log.d("ResultadosFragment", "ID do Usuário: $usuarioId")
+
+        // Recuperar latitude e longitude passados como argumento
         val latitude = arguments?.getFloat("latitude")?.toDouble()
         val longitude = arguments?.getFloat("longitude")?.toDouble()
 
+        // Verificar se as coordenadas foram passadas corretamente
         if (latitude != null && longitude != null) {
             lifecycleScope.launch {
                 val (avgWindSpeed, avgUVIndex) = fetchWeatherData(latitude, longitude)
                 if (avgWindSpeed != null && avgUVIndex != null) {
-                    estimateSolarEnergy(avgUVIndex)
-                    estimateWindEnergy(avgWindSpeed)
+                    estimateSolarEnergy(avgUVIndex, enderecoId)
+                    estimateWindEnergy(avgWindSpeed, enderecoId)
+
+                    if (energiaSolarGerada != null && energiaEolicaGerada != null) {
+                        calcularEconomia(enderecoId, energiaSolarGerada!!, energiaEolicaGerada!!)
+                    } else {
+                        Log.e("ResultadosFragment", "Valores de energia não disponíveis para cálculo da economia.")
+                    }
                 } else {
                     Log.e("ResultadosFragment", "Dados meteorológicos não disponíveis para cálculo.")
                 }
@@ -67,16 +76,7 @@ class ResultadosFragment : Fragment() {
         } else {
             Log.e("ResultadosFragment", "Coordenadas não fornecidas.")
         }
-
-        /*lifecycleScope.launch {
-            val cardInfoList = fetchData(ApiClient.apiService)
-            binding.recyclerView.apply {
-                layoutManager = LinearLayoutManager(context)
-                adapter = CardAdapter(cardInfoList)
-            }
-        }*/
     }
-
 
     private suspend fun fetchWeatherData(latitude: Double, longitude: Double): Pair<Double?, Double?> {
         val apiKey = "62123cdbe631436eb8f03c79958921b9"
@@ -118,65 +118,63 @@ class ResultadosFragment : Fragment() {
         }
     }
 
-    /*private suspend fun fetchData(apiService: ApiService): List<CardInfo> {
-        return try {
-            val enderecos = apiService.getEnderecos()
-            val energiaSolar = apiService.getEnergiaSolar()
-            val energiaEolica = apiService.getEnergiaEolica()
-
-            enderecos.map { endereco ->
-                val solar = energiaSolar.find { it.id == endereco.id }?.energiaEstimadaGerada ?: 0.0
-                val eolica = energiaEolica.find { it.id == endereco.id }?.energiaEstimadaGerada ?: 0.0
-
-                CardInfo(
-                    nomeEndereco = endereco.nome,
-                    energiaSolarGerada = solar,
-                    energiaEolicaGerada = eolica,
-                    economia = endereco.economia
-                )
-            }
-        } catch (e: Exception) {
-            Log.e("ErroAPI", "Falha ao carregar dados: ${e.message}")
-            emptyList()
-        }
-    }*/
-
-
-    private fun estimateSolarEnergy(avgUVIndex: Double?) {
+    private fun estimateSolarEnergy(avgUVIndex: Double?, enderecoId: Int) {
         if (avgUVIndex != null) {
-            // O índice UV é convertido em irradiância solar estimada (em W/m²)
-            val irradiance = avgUVIndex * 25.0 // Fator aproximado para conversão UV -> irradiância
+            val irradiance = avgUVIndex * 25.0
+            val areaOfPanels = 10.0
+            val panelEfficiency = 0.18
 
-            // Área das placas solares (m²) e eficiência média do painel (%)
-            val areaOfPanels = 10.0 // Exemplo: 10 m² de painéis solares
-            val panelEfficiency = 0.18 // Eficiência de 18%
-
-            // Cálculo de energia solar gerada (kWh/dia)
             val solarEnergyGenerated = (areaOfPanels * panelEfficiency * irradiance * 5) / 1000
             val solarEnergyGeneratedMonth = solarEnergyGenerated * 30
 
-            // Exibir o resultado no TextView
+            // Armazena o valor calculado
+            energiaSolarGerada = solarEnergyGeneratedMonth
+
             binding.txtUvIndex.text = "Índice UV Médio:\n${"%.2f".format(avgUVIndex)}"
             binding.txtSolarEnergy.text = "Energia Solar Estimada:\n${"%.2f".format(solarEnergyGeneratedMonth)} kWh/mês"
+
+            Log.d("ResultadosFragment", "Energia Solar Estimada: $solarEnergyGeneratedMonth kWh/mês")
+
+            val energiaSolar = EnergiaSolar(
+                null,
+                areaPlaca = areaOfPanels,
+                irradiacaoSolar = avgUVIndex,
+                energiaEstimadaGerada = solarEnergyGeneratedMonth,
+                fk_endereco = enderecoId
+            )
+            sendEnergiaSolar(energiaSolar)
         } else {
             Log.e("ResultadosFragment", "Índice UV médio nulo, cálculo não realizado.")
             binding.txtSolarEnergy.text = "Energia Solar Estimada:\nDados indisponíveis"
         }
     }
 
-    private fun estimateWindEnergy(avgWindSpeed: Double?) {
-        if (avgWindSpeed != null) {
-            // Área da turbina eólica (m²) e densidade do ar (kg/m³)
-            val turbineArea = 10.0 // Exemplo: turbina com área de 10 m²
-            val airDensity = 1.225 // Densidade do ar padrão ao nível do mar (kg/m³)
 
-            // Cálculo de energia eólica gerada (kWh/dia)
+    private fun estimateWindEnergy(avgWindSpeed: Double?, enderecoId: Int) {
+        if (avgWindSpeed != null) {
+            val turbineArea = 10.0
+            val airDensity = 1.225
+
             val windEnergyGenerated = (0.5 * airDensity * turbineArea * avgWindSpeed.pow(3) * 0.35) / 1000
             val windEnergyGeneratedMonth = windEnergyGenerated * 30
 
-            // Exibir o resultado no TextView
+            // Armazena o valor calculado
+            energiaEolicaGerada = windEnergyGeneratedMonth
+
             binding.txtWindSpeed.text = "Média velocidade vento:\n${"%.2f".format(avgWindSpeed)}"
             binding.txtWindEnergy.text = "Energia Eólica Estimada:\n${"%.2f".format(windEnergyGeneratedMonth)} kWh/mês"
+
+            Log.d("ResultadosFragment", "Energia Eólica Estimada: $windEnergyGeneratedMonth kWh/mês")
+
+            val energiaEolica = EnergiaEolica(
+                null,
+                potenciaNominal = 500.0,
+                alturaTorre = 15.0,
+                diametroRotor = 15.0,
+                energiaEstimadaGerada = windEnergyGeneratedMonth,
+                fk_endereco = enderecoId
+            )
+            sendEnergiaEolica(energiaEolica)
         } else {
             Log.e("ResultadosFragment", "Velocidade do vento média nula, cálculo não realizado.")
             binding.txtWindEnergy.text = "Energia Eólica Estimada:\nDados indisponíveis"
@@ -184,134 +182,112 @@ class ResultadosFragment : Fragment() {
     }
 
 
+    private fun sendEnergiaSolar(energiaSolar: EnergiaSolar) {
+        ApiClient.api.enviarEnergiaSolar(energiaSolar).enqueue(object : Callback<EnergiaSolar> {
+            override fun onResponse(call: Call<EnergiaSolar>, response: Response<EnergiaSolar>) {
+                if (response.isSuccessful) {
+                    Log.d("ResultadosFragment", "Energia solar enviada com sucesso.")
+                } else {
+                    Log.e("ResultadosFragment", "Erro ao enviar energia solar.")
+                }
+            }
+
+            override fun onFailure(call: Call<EnergiaSolar>, t: Throwable) {
+                Log.e("ResultadosFragment", "Falha na requisição de energia solar: ${t.message}")
+            }
+        })
+    }
+
+    private fun sendEnergiaEolica(energiaEolica: EnergiaEolica) {
+        ApiClient.api.enviarEnergiaEolica(energiaEolica).enqueue(object : Callback<EnergiaEolica> {
+            override fun onResponse(call: Call<EnergiaEolica>, response: Response<EnergiaEolica>) {
+                if (response.isSuccessful) {
+                    Log.d("ResultadosFragment", "Energia eólica enviada com sucesso.")
+                } else {
+                    Log.e("ResultadosFragment", "Erro ao enviar energia eólica.")
+                }
+            }
+
+            override fun onFailure(call: Call<EnergiaEolica>, t: Throwable) {
+                Log.e("ResultadosFragment", "Falha na requisição de energia eólica: ${t.message}")
+            }
+        })
+    }
+
+    private fun updateEconomia(enderecoId: Int, economia: Double) {
+        // Primeiro, fazer um GET para buscar os dados atuais do endereço
+        Log.d("ResultadosFragment", "Buscando dados do endereço $enderecoId para atualizar economia.")
+        ApiClient.api.getEnderecoById(enderecoId).enqueue(object : Callback<Endereco> {
+            override fun onResponse(call: Call<Endereco>, response: Response<Endereco>) {
+                if (response.isSuccessful) {
+                    val enderecoAtual = response.body()
+                    if (enderecoAtual != null) {
+                        // Manter os dados atuais do endereço e atualizar somente a economia
+                        val enderecoAtualizado = enderecoAtual.copy(economia = economia)
+
+                        Log.d("ResultadosFragment", "Atualizando economia: $economia para o endereço $enderecoId")
+                        // Enviar a atualização com os dados existentes e a nova economia
+                        ApiClient.api.updateEndereco(enderecoAtualizado.id!!, enderecoAtualizado).enqueue(object : Callback<Endereco> {
+                            override fun onResponse(call: Call<Endereco>, response: Response<Endereco>) {
+                                if (response.isSuccessful) {
+                                    Log.d("ResultadosFragment", "Economia atualizada com sucesso para o endereço $enderecoId")
+                                } else {
+                                    Log.e("ResultadosFragment", "Erro ao atualizar economia: ${response.code()}")
+                                }
+                            }
+
+                            override fun onFailure(call: Call<Endereco>, t: Throwable) {
+                                Log.e("ResultadosFragment", "Falha na requisição de atualização de economia: ${t.message}")
+                            }
+                        })
+                    } else {
+                        Log.e("ResultadosFragment", "Endereço não encontrado no banco de dados.")
+                    }
+                } else {
+                    Log.e("ResultadosFragment", "Erro ao buscar endereço: ${response.code()}")
+                }
+            }
+
+            override fun onFailure(call: Call<Endereco>, t: Throwable) {
+                Log.e("ResultadosFragment", "Falha na requisição de busca de endereço: ${t.message}")
+            }
+        })
+    }
+
+    private fun calcularEconomia(enderecoId: Int, energiaSolar: Double, energiaEolica: Double) {
+        // Primeiro, buscar a tarifa do banco de dados usando o ID do endereço
+        ApiClient.api.getEnderecoById(enderecoId).enqueue(object : Callback<Endereco> {
+            override fun onResponse(call: Call<Endereco>, response: Response<Endereco>) {
+                if (response.isSuccessful) {
+                    val endereco = response.body()
+                    if (endereco != null) {
+                        // Obter a tarifa do endereço
+                        val tarifa = endereco.tarifa ?: 0.0
+
+                        // Calcular economia
+                        val economia = (energiaSolar + energiaEolica) * tarifa
+
+                        Log.d("calcularEconomia", "Tarifa: $tarifa, Energia Solar: $energiaSolar, Energia Eólica: $energiaEolica, Economia: $economia")
+
+                        // Atualizar a economia no banco de dados
+                        updateEconomia(enderecoId, economia)
+                    } else {
+                        Log.e("calcularEconomia", "Endereço não encontrado no banco de dados.")
+                    }
+                } else {
+                    Log.e("calcularEconomia", "Erro ao buscar endereço: ${response.code()}")
+                }
+            }
+
+            override fun onFailure(call: Call<Endereco>, t: Throwable) {
+                Log.e("calcularEconomia", "Falha na requisição para buscar endereço: ${t.message}")
+            }
+        })
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 }
-
-/*CÓDIGO COM DADOS MOCKADOS
-package com.example.calculaeconomia
-
-import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.calculaeconomia.databinding.FragmentResultadosBinding
-import kotlinx.coroutines.launch
-import kotlin.math.pow
-
-class ResultadosFragment : Fragment() {
-
-    private var _binding: FragmentResultadosBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentResultadosBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Mockando os dados
-        val cardInfoList = mockData()
-
-        // Verificando o conteúdo dos dados mockados
-        Log.d("ResultadosFragment", "Dados mockados: ${cardInfoList.joinToString()}")
-
-        // Configurando o RecyclerView
-        binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = CardAdapter(cardInfoList)
-        }
-
-        // Simulando o cálculo de energia solar e eólica com os dados mockados
-        cardInfoList.forEach { cardInfo ->
-            Log.d("ResultadosFragment", "Nome: ${cardInfo.nomeEndereco}, " +
-                    "Energia Solar: ${cardInfo.energiaSolarGerada}, Energia Eólica: ${cardInfo.energiaEolicaGerada}")
-        }
-
-        // Calculando a energia solar e eólica para o primeiro item da lista
-        if (cardInfoList.isNotEmpty()) {
-            val firstCard = cardInfoList[0]
-            estimateSolarEnergy(firstCard.energiaSolarGerada)
-            estimateWindEnergy(firstCard.energiaEolicaGerada)
-        }
-    }
-
-    private fun estimateSolarEnergy(energiaSolar: Double) {
-        // Verificando valor de energia solar
-        Log.d("ResultadosFragment", "Estimando energia solar para valor: $energiaSolar kWh")
-        if (energiaSolar > 0) {
-            val energiaSolarEstimativa = energiaSolar * 30 // Estimativa para o mês
-            Log.d("ResultadosFragment", "Energia Solar Estimada: $energiaSolarEstimativa kWh/mês")
-            binding.txtSolarEnergy.text = "Energia Solar Estimada: ${"%.2f".format(energiaSolarEstimativa)} kWh/mês"
-        } else {
-            Log.e("ResultadosFragment", "Valor de energia solar inválido ou nulo.")
-            binding.txtSolarEnergy.text = "Energia Solar Estimada: Dados indisponíveis"
-        }
-    }
-
-    private fun estimateWindEnergy(energiaEolica: Double) {
-        // Verificando valor de energia eólica
-        Log.d("ResultadosFragment", "Estimando energia eólica para valor: $energiaEolica kWh")
-        if (energiaEolica > 0) {
-            val energiaEolicaEstimativa = energiaEolica * 30 // Estimativa para o mês
-            Log.d("ResultadosFragment", "Energia Eólica Estimada: $energiaEolicaEstimativa kWh/mês")
-            binding.txtWindEnergy.text = "Energia Eólica Estimada: ${"%.2f".format(energiaEolicaEstimativa)} kWh/mês"
-        } else {
-            Log.e("ResultadosFragment", "Valor de energia eólica inválido ou nulo.")
-            binding.txtWindEnergy.text = "Energia Eólica Estimada: Dados indisponíveis"
-        }
-    }
-
-    // Função mockData para fornecer dados simulados
-    fun mockData(): List<CardInfo> {
-        // Dados mockados para teste
-        val enderecos = listOf(
-            Endereco(1, "Residencial", "Casa 1", "12345-678", 0.5, 200.0, 50.0),
-            Endereco(2, "Residencial", "Casa 2", "23456-789", 0.7, 150.0, 60.0),
-            Endereco(3, "Comercial", "Empresa X", "34567-890", 0.8, 300.0, 100.0)
-        )
-
-        val energiaSolar = listOf(
-            EnergiaSolar(1, 25.0, 5.0, 1000.0),
-            EnergiaSolar(2, 30.0, 5.5, 1200.0),
-            EnergiaSolar(3, 50.0, 6.0, 2000.0)
-        )
-
-        val energiaEolica = listOf(
-            EnergiaEolica(1, 1.5, 20.0, 10.0, 1500.0),
-            EnergiaEolica(2, 2.0, 25.0, 12.0, 1800.0),
-            EnergiaEolica(3, 3.0, 30.0, 15.0, 3000.0)
-        )
-
-        // Mapeando os dados para a classe CardInfo
-        return enderecos.map { endereco ->
-            val solar = energiaSolar.find { it.id == endereco.id }?.energiaEstimadaGerada ?: 0.0
-            val eolica = energiaEolica.find { it.id == endereco.id }?.energiaEstimadaGerada ?: 0.0
-
-            CardInfo(
-                nomeEndereco = endereco.nome,
-                energiaSolarGerada = solar,
-                energiaEolicaGerada = eolica,
-                economia = endereco.economia
-            )
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}*/
-

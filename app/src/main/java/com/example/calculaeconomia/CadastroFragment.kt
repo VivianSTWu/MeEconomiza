@@ -1,5 +1,6 @@
 package com.example.calculaeconomia
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -38,7 +39,6 @@ class CadastroFragment : Fragment() {
             Log.e("CadastroFragment", "Binding não inicializado corretamente")
         }
 
-
         binding.button.setOnClickListener {
             Log.d("CadastroFragment", "Botão de envio clicado")
 
@@ -46,7 +46,6 @@ class CadastroFragment : Fragment() {
             val email = binding.textInputEditEmail.text.toString()
 
             Log.d("CadastroFragment", "Nome: $nome, Email: $email") // Verificar valores capturados
-
 
             if (nome.isBlank() || email.isBlank()) {
                 Log.w("CadastroFragment", "Campos obrigatórios não preenchidos")
@@ -62,14 +61,24 @@ class CadastroFragment : Fragment() {
     private fun enviarDados(nome: String, email: String) {
         Log.d("CadastroFragment", "Método enviarDados chamado com nome=$nome, email=$email")
 
-        val usuario = Usuario(nome, email)
+        val usuario = Usuario(null, nome, email)
+
+        Log.d("enviarPost", "Corpo do POST: ${usuario}")
 
         // Usando Retrofit com enqueue para chamada assíncrona
-        ApiClient.api.cadastrarUsuario(usuario).enqueue(object : Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+        ApiClient.api.cadastrarUsuario(usuario).enqueue(object : Callback<Usuario> {
+            override fun onResponse(call: Call<Usuario>, response: Response<Usuario>) {
                 if (response.isSuccessful) {
                     Log.d("API", "Usuário cadastrado com sucesso!")
                     Toast.makeText(requireContext(), "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
+
+                    // Suponha que a resposta da API após cadastro de usuário retorne o ID
+                    val usuarioId = response.body()?.id // Pega o ID retornado
+
+                    // Salve esse ID em algum lugar, como em SharedPreferences
+                    val sharedPreferences = requireActivity().getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().putInt("user_id", usuarioId ?: 0).apply() // Salva o ID, caso exista
+
                     findNavController().navigate(R.id.formularioFragment)
                 } else {
                     // Log detalhado do erro
@@ -78,13 +87,12 @@ class CadastroFragment : Fragment() {
                 }
             }
 
-            override fun onFailure(call: Call<Void>, t: Throwable) {
+            override fun onFailure(call: Call<Usuario>, t: Throwable) {
                 Log.e("API", "Erro de conexão: ${t.message}")
                 Toast.makeText(requireContext(), "Falha na comunicação com a API", Toast.LENGTH_SHORT).show()
             }
         })
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

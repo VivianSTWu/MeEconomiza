@@ -1,5 +1,6 @@
 package com.example.calculaeconomia
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -64,14 +65,19 @@ class FormularioFragment : Fragment() {
         binding.btnCalcular.setOnClickListener {
             val cep = binding.TextInputEditCep.text.toString().trim()
 
-            // Valida se o CEP foi inserido
+            // Validação do CEP
             if (cep.isEmpty()) {
                 Toast.makeText(requireContext(), "Por favor, insira um CEP válido", Toast.LENGTH_SHORT).show()
-            } else {
-                // Chama a função para obter as coordenadas
-                getCoordinatesFromCep(cep, apiKey)
+                return@setOnClickListener
             }
+
+            // Obtém coordenadas ou chama diretamente o POST, dependendo da lógica desejada
+            getCoordinatesFromCep(cep, apiKey)
+
+            // Realiza o POST
+            enviarPost()
         }
+
     }
 
 
@@ -83,6 +89,7 @@ class FormularioFragment : Fragment() {
                 response: Response<GeocodeResponse>
             ) {
                 if (response.isSuccessful) {
+                    Log.d("FormularioFragment", "Resposta do servidor: ${response.body()}")
                     response.body()?.let { geocodeResponse ->
                         Log.d("FormularioFragment", "Resposta completa: ${geocodeResponse}")
 
@@ -109,6 +116,7 @@ class FormularioFragment : Fragment() {
                                 ).show()
                             }
                         } else {
+                            Log.e("FormularioFragment", "Erro: ${response.errorBody()?.string()}")
                             Log.e("FormularioFragment", "Erro na resposta da API ou resultados vazios: ${geocodeResponse.status}")
                             Toast.makeText(
                                 requireContext(),
@@ -138,6 +146,54 @@ class FormularioFragment : Fragment() {
         })
     }
 
+    private fun enviarPost() {
+        val sharedPreferences = requireActivity().getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
+        val usuarioId = sharedPreferences.getInt("user_id", -1)
+
+        val nome = binding.TextInputEditApelido.text.toString()
+        val cep = binding.TextInputEditCep.text.toString()
+        val tarifa = binding.TextInputEditTarifa.text.toString().toDouble()
+        val gastoMensal = binding.TextInputEditGasto.text.toString().toDouble()
+
+        val endereco = Endereco(null,
+            tipoResidencial = "Residencial",
+            nome = nome,
+            cep = cep,
+            tarifa = tarifa,
+            gastoMensal = gastoMensal,
+            economia = 0.0,
+            fk_usuario = usuarioId
+        )
+
+        Log.d("enviarPost", "Corpo do POST: ${endereco}")
+
+        val apiService = ApiClient.api
+        val call = apiService.cadastrarEndereco(endereco)
+
+        call.enqueue(object : Callback<Endereco> {
+            override fun onResponse(call: Call<Endereco>, response: Response<Endereco>) {
+                if (response.isSuccessful) {
+                    val enderecoCriado = response.body()
+                    val enderecoId = enderecoCriado?.id
+
+                    if (enderecoId != null) {
+                        sharedPreferences.edit().putInt("endereco_id", enderecoId).apply()
+                        Toast.makeText(context, "Endereço cadastrado! ID: $enderecoId", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.e("enviarPost", "Resposta sem ID de endereço.")
+                    }
+                } else {
+                    Log.e("enviarPost", "Erro no cadastro: ${response.code()} - ${response.errorBody()?.string()}")
+                    Toast.makeText(context, "Erro ao cadastrar o endereço.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Endereco>, t: Throwable) {
+                Log.e("enviarPost", "Erro na conexão: ${t.message}")
+                Toast.makeText(context, "Falha na comunicação com a API.", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     override fun onDestroy() {
         super.onDestroy()
