@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/formularioFragment"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@android:drawable/ic_menu_mylocation"
         android:title="Consulta" />
     <item
         android:id="@+id/resultadosFragment"
-        android:icon="@android:drawable/ic_popup_sync"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="Resultados" />
 
 </menu>
