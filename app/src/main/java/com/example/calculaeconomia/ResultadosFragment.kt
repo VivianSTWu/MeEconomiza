@@ -1,4 +1,3 @@
-/*
 package com.example.calculaeconomia
 
 import UvResponse
@@ -39,14 +38,6 @@ class ResultadosFragment : Fragment() {
     private var _binding: FragmentResultadosBinding? = null
     private val binding get() = _binding!!
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
-        */
-/*private const val API_KEY = "4b4188bbb0e10c9709e02e6cc92b3c4c"
-        private const val BASE_URL = "https://api.openweathermap.org/"*//*
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -199,8 +190,8 @@ class ResultadosFragment : Fragment() {
         _binding = null
     }
 }
-*/
 
+/*CÓDIGO COM DADOS MOCKADOS
 package com.example.calculaeconomia
 
 import android.os.Bundle
@@ -322,5 +313,5 @@ class ResultadosFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-}
+}*/
 
