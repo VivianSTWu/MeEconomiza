@@ -74,3 +74,9 @@ Como solução proposta para a Global Solution do final de 2024, desafio lançad
 
 4. **Exibição de Resultados:**
    - O aplicativo exibe gráficos e estimativas para cada endereço, utilizando o método GET.
+  
+---
+
+## Demonstração
+
+Link para o vídeo de demonstração de uso: https://youtu.be/a97ZFqwh4T8
