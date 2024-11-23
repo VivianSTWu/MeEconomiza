@@ -1,4 +1,4 @@
-# MeEconomiza
+# Me Economiza
 
 MeEconomiza é um aplicativo Android desenvolvido para auxiliar usuários na avaliação da viabilidade e custo-benefício de instalar fontes de energia sustentável, como energia solar e eólica, em suas residências. 
 
